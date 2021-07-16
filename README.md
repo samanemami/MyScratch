@@ -21,7 +21,9 @@ You may find one of the following in the codes;
 </br>
 Each NoteBook contains all the descriptions for calculations.
 </br>
+
 # Problems and models type
+
 The problems I worked on them are as following;
 <ul>
 <li> Binary classificatio </li>
