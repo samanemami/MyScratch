@@ -7,3 +7,16 @@ Please feel free to use the codes or dataset as you want.
 <br>
 # What does this repository contain 
 Each weekend if I have a good mood, I add some works to this directory
+</br>
+You may find one of the following in the codes;
+<ol>
+<li> EDA exploratory data analysis </li>
+<li> Statistical analysis </li>
+<li> Feature engineering </li>
+<li> PCA principal component analysis </li>
+<li> Cross-vlaidation analysis </li>
+<li> Machine learning - Model selection </li>
+<li> Evaluationg the results </li>
+</ol>
+</br>
+Each NoteBook contains all the descriptions for calculations.
