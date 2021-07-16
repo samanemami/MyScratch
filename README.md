@@ -36,3 +36,18 @@ The models I use and using are:
 <li> Supervised learning </li>
 <li> Unsupervised learning </li>
 </ul>
+
+# Requirements
+The codes take the advantages of too many well-known libraries. Some of them are listed as follows;
+<ul>
+<li> Numpy </li>
+<li> Pandas</li>
+<li> Matplotlib</li>
+<li> seaborn </li>
+<li> spacy </li>
+<li> scipy </li>
+<li> wordcloud </li>
+<li> textwrap </li>
+<li> sklearn</li>
+<li> pytorch </li>
+<li> Tensorflow </li>
