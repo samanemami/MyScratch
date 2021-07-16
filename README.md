@@ -20,3 +20,17 @@ You may find one of the following in the codes;
 </ol>
 </br>
 Each NoteBook contains all the descriptions for calculations.
+</br>
+# Problems and models type
+The problems I worked on them are as following;
+<ul>
+<li> Binary classificatio </li>
+<li> Regression </li>
+<li> Multi class classification </li>
+<li> multi-output regression </li>
+</ul>
+The models I use and using are:
+<ul>
+<li> Supervised learning </li>
+<li> Unsupervised learning </li>
+</ul>
