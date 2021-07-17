@@ -36,29 +36,29 @@ Each NoteBook contains all the descriptions for calculations.
 # Problems and models type
 
 The problems I worked on them are as following;
-<ul>
-<li> Binary classificatio </li>
-<li> Regression </li>
-<li> Multi class classification </li>
-<li> multi-output regression </li>
-</ul>
+    <ul>
+        <li> Binary, Multi-class classificatio </li>
+        <li> Regression, multi-output regression </li>
+        <li>  Image processing </li>
+    </ul>
 The models I use and using are:
-<ul>
-<li> Supervised learning </li>
-<li> Unsupervised learning </li>
-</ul>
+    <ul>
+        <li> Supervised learning </li>
+        <li> Unsupervised learning </li>
+    </ul>
 
 # Requirements
 The codes take the advantages of too many well-known libraries. Some of them are listed as follows;
-<ul>
-<li> Numpy </li>
-<li> Pandas</li>
-<li> Matplotlib</li>
-<li> seaborn </li>
-<li> spacy </li>
-<li> scipy </li>
-<li> wordcloud </li>
-<li> textwrap </li>
-<li> sklearn</li>
-<li> pytorch </li>
-<li> Tensorflow </li>
+    <ul>
+        <li> Numpy </li>
+        <li> Pandas</li>
+        <li> Matplotlib</li>
+        <li> seaborn </li>
+        <li> spacy </li>
+        <li> scipy </li>
+        <li> wordcloud </li>
+        <li> textwrap </li>
+        <li> sklearn</li>
+        <li> pytorch </li>
+        <li> Tensorflow </li>
+    </ul>
