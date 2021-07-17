@@ -13,7 +13,18 @@ You may find one of the following in the codes;
 <li> EDA exploratory data analysis </li>
 <li> Statistical analysis </li>
 <li> Feature engineering </li>
-<li> PCA principal component analysis </li>
+    <ul>
+      <li> Imputation </li>
+      <li> Handling Outliers</li>
+      <li> Binning</li>
+      <li> Log Transform </li>
+      <li> One-Hot Encoding </li>
+      <li> Grouping Operations </li>
+      <li> Feature Split </li>
+      <li> Scaling </li>
+      <li> Extracting Date </li>
+      <li> PCA principal component analysis </li>
+    </ul>
 <li> Cross-vlaidation analysis </li>
 <li> Machine learning - Model selection </li>
 <li> Evaluationg the results </li>
