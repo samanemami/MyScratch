@@ -1,0 +1,308 @@
+---
+title: "market research survey"
+author: "Seyedsaman_Emami"
+date: "11/22/2021"
+output: html_document
+---
+
+About this Script
+Author: Seyedsaman Emami
+In the following script, I considered a survey dataset for a computer brand preference. The considered problem for this script is a binary classification. The language which is used is R. The dataset has already been split into the training and test. The classification methods I used are GBM and Random Forest from the caret package.
+
+After reviewing the dataset, I imported and defined the ML models and trained them on the split training dataset to return a model with higher performance. The selected model is then applied over an unseen dataset for validating it.
+
+One of the challenges of this dataset is the issue of imbalanced class distribution, and this will be a problem in caret library.
+
+Note the fact that, although the dataset has already been split, I rather split the training part for the sake of the model selection and hyper-parameter optimization.
+
+Author: Seyedsaman Emami
+
+
+# Establishing the R-environment
+* Load the essential libraries for working on this dataset and following classification problem
+
+```{r}
+library(readr)
+library(tidyverse)
+library(skimr)
+library(caret)
+library(crosstable)
+library(Metrics)
+set.seed(111)
+```
+Importing the dataset
+```{r}
+path_tr = "F:/Documents/Other/Ubiqum/Module3/Task2/SurveyData/CompleteResponses.csv"
+path_te = "F:/Documents/Other/Ubiqum/Module3/Task2/SurveyData/SurveyIncomplete.csv"
+df_training <-read.csv(path_tr)
+df_testing <-read.csv(path_te)
+```
+Check out the data summary
+```{r}
+head(df_training)
+head(df_testing)
+```
+```{r}
+summary(df_training)
+summary(df_testing)
+```
+Dataset structure
+```{r}
+str(df_testing)
+str(df_testing)
+```
+# Data Preprocessing
+```{r}
+sum(is.na(df_training))
+```
+There is no missing value in the dataset
+
+# Quick statistical analysis
+```{r}
+skimmed <- skim(df_training
+                )
+skimmed
+```
+## Data distribution
+Data distribution at a glance.
+```{r}
+par(mfrow=c(3, 3))
+for (val in seq_along(df_training)){
+  hist(df_training[, c(val)], main=names(df_training[c(val)]))
+}
+```
+```{r, fig.width=5, fig.height=4} 
+featurePlot(x = df_training[, 1:6], 
+            y = (as.factor(df_training[, 7])),
+            plot = 'density',
+            scales = list(x = list(relation="free"), 
+                          y = list(relation="free")))
+```
+```{r, fig.width=5, fig.height=4} 
+trellis.par.set(caretTheme())
+
+featurePlot(x = df_training[, 1:6], 
+            y = (as.factor(df_training[, 7])), 
+            plot = "box",
+            strip=strip.custom(par.strip.text=list(cex=.7)),
+            scales = list(x = list(relation="free"), 
+                          y = list(relation="free")))
+```
+```{r, fig.width=3, fig.height=3} 
+barplot(prop.table(table(df_training$brand)),
+        col = rainbow(2),
+        ylim = c(0, 1),
+        main = "Class Distribution")
+```
+
+# Model selection
+Preprocessing the dataset
+
+```{r}
+for (val in seq_along(df_training))
+    {
+        df_training[, c(val)] <- as.factor(df_training[, c(val)])
+}
+```
+In this part first I am going to split the dataset using the createDataPartition. stratified random split of the data.
+```{r}
+trainIndexes <- createDataPartition(y = df_training[, c(7)], p = .75, list = FALSE)
+trainIndexes <- array(as.numeric(unlist(trainIndexes)))
+
+trainSet<-df_training[trainIndexes,]
+testSet <- df_training[-trainIndexes, ]
+
+
+testSet[, c(7)] <- as.factor(make.names(testSet[, c(7)]))
+trainSet[, c(7)] <- as.factor(make.names(trainSet[, c(7)]))
+```
+```{r}
+trainSet$salary <- as.numeric(trainSet$salary)
+trainSet$credit <- as.numeric(trainSet$credit)
+```
+```{r}
+head(trainSet)
+```
+## cross-validation method
+Add cross-validation method for splitting the dataset
+```{r}
+options(warn=-1)
+trControl <- trainControl(method = "cv",
+                          number = 10,
+                          p = 0.75,
+                          search = "grid",
+                          classProbs = TRUE,
+                          allowParallel = TRUE)
+```
+
+Note that I reduced my grid size to run the model as fast as my laptop can
+
+```{r}
+tuneGridXGB <- expand.grid(n.trees=c(10, 30, 50),
+                           interaction.depth = c(2, 4, 10),
+                           shrinkage = c(0.75, 0.1),
+                           n.minobsinnode = c(0,2))
+```
+
+## Gradient Boosting model 
+Applying the model
+```{r}
+gbm_model <- train(brand ~ .,
+                   data = trainSet,
+                   method = "gbm",
+                   verbose = FALSE,
+                   metric = "accuracy",
+                   trControl = trControl,
+                   tuneGrid = tuneGridXGB)
+```
+
+## Model Evaluation
+### Profiling the result
+```{r}
+gbm_model
+```
+
+```{r}
+testSet$salary <- as.numeric(testSet$salary)
+testSet$credit <- as.numeric(testSet$credit)
+pred_gbm = predict(gbm_model, newdata = testSet)
+```
+
+### results
+```{r}
+acc_gb <- accuracy(testSet$brand, pred_gbm)
+pstgb <- postResample(pred_gbm, testSet$brand)
+gbm_model$results[, 1:7]
+```
+
+
+
+```{r}
+trellis.par.set(caretTheme())
+plot(gbm_model)
+```
+Other performance metrics can be shown using the metric option:
+```{r}
+plot(gbm_model, metric='Kappa')
+```
+
+```{r}
+plot(gbm_model, metric = "Kappa", plotType = "level",
+     scales = list(x = list(rot = 90)))
+```
+
+```{r}
+densityplot(gbm_model, pch = "|")
+```
+## Random Forest
+The grid size has been reduced due to my computational resource 
+
+```{r}
+for (val in seq_along(df_training))
+    {
+        df_training[, c(val)] <- as.numeric(df_training[, c(val)])
+}
+```
+
+```{r}
+trainIndexes <- createDataPartition(y = df_training[, c(7)], p = .75, list = FALSE)
+trainIndexes <- array(as.numeric(unlist(trainIndexes)))
+```
+
+```{r}
+trainSet<-df_training[trainIndexes,]
+testSet <- df_training[-trainIndexes, ]
+```
+
+```{r}
+testSet[, c(7)] <- as.factor(make.names(testSet[, c(7)]))
+trainSet[, c(7)] <- as.factor(make.names(trainSet[, c(7)]))
+head(trainSet)
+```
+
+```{r}
+tuneGridXrf <- expand.grid(.mtry = c(3,4))
+```
+
+## Gradient Boosting model 
+Applying the model
+
+```{r}
+random_forest_model <- train(brand ~ .,
+                             data = trainSet,
+                             method = "rf",
+                             tuniGrid = tuneGridXrf,
+                             trControl = trainControl(method = "cv",
+                                                      number = 10,
+                                                      p = 0.75,
+                                                      search = "grid")
+                             )
+```
+
+## Model Summary
+
+```{r}
+summary(random_forest_model)
+```
+
+## Model evaluation
+```{r}
+random_forest_model
+```
+
+```{r}
+plot(random_forest_model)
+```
+
+```{r}
+pred_rf = predict(random_forest_model, newdata = testSet)
+```
+
+
+```{r}
+acc_rf <- accuracy(testSet$brand, pred_rf)
+```
+# Model comparison
+For this part, I used the trained models (Gradient Boosting and Random Forest) on the IncompleteSurvey Dataset, which I kept for the model validation.
+```{r}
+pstrf <- postResample(pred_rf, testSet$brand)
+pst <- matrix(c(pstgb, pstrf), ncol = 2, byrow = TRUE)
+colnames(pst) <-c("Accuracy", "Kappa")
+rownames(pst) <-c("GBM", "Random Forest")
+pst
+```
+
+```{r}
+sum_gb <- summary(pred_gbm)
+sum_rf <- summary(pred_rf)
+
+sumary_ <- matrix(c(sum_gb, sum_rf), ncol = 2, byrow = TRUE)
+colnames(sumary_) <- c("X0", "X1")
+rownames(sumary_) <-c("GBM", "Random Forest")
+sumary_
+```
+
+
+
+# Conclusion
+
+
+In this Script, I used two split datasets in the Market Research Field.
+The dataset is about the customers' satisfaction regarding two different laptops.
+I considered the customer preference as a binary classification and implemented two ensemble classifiers. 
+  * Gradient Boosting Classifier
+  * Random Forest Classifier
+The package for the model selection is "caret".
+
+The resampling method is cross-validation, and I considered the Gridsearch for the parameter optimization.
+
+
+First of all, to train the models, I considered the CompleteResponses.csv and split it to train and test with 0.75% size for the training part and the rest for testing the model.
+
+The metric I considered is accuracy.
+
+For the model selection part, I tried to predict the unseen class labels with the IncompleteSurvey.csv and pick the model with the highest accuracy.
+
+The best model due to its accuracy is Random Forest.
+
+Moreover, I checked the predicted value for both models and it shows the imbalanced class label distribution.
