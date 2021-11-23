@@ -32,8 +32,8 @@ set.seed(111)
 ```
 Importing the dataset
 ```{r}
-path_tr = "F:/Documents/Other/Ubiqum/Module3/Task2/SurveyData/CompleteResponses.csv"
-path_te = "F:/Documents/Other/Ubiqum/Module3/Task2/SurveyData/SurveyIncomplete.csv"
+path_tr = "~/CompleteResponses.csv"
+path_te = "~/SurveyIncomplete.csv"
 df_training <-read.csv(path_tr)
 df_testing <-read.csv(path_te)
 ```
