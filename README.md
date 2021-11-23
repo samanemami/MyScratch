@@ -80,3 +80,15 @@ The languages I am using for this repository are as follows;
         <li> HTML</li>
         <li> LaTeX </li>
     </ul>
+    
+You may find my works in this repository in the following formats;
+    <ul>
+        <li> Jupyter notebook  </li>
+        <li> R markDown</li>
+        <li> HTML Report</li>
+        <li> R.script</li>
+        <li> py </li>
+    </ul>
+
+
+
