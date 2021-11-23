@@ -71,3 +71,12 @@ The codes take the advantages of too many well-known libraries. Some of them are
         <li> pytorch </li>
         <li> Tensorflow </li>
     </ul>
+
+# Languages 
+The languages I am using for this repository are as follows;
+    <ul>
+        <li> Python </li>
+        <li> R</li>
+        <li> HTML</li>
+        <li> LaTeX </li>
+    </ul>
