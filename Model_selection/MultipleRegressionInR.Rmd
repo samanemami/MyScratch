@@ -1,0 +1,363 @@
+---
+title: 'Multiple Regression in R'
+author: 'Seyedsaman Emami'
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    number_sections: true
+    toc: true
+---
+
+About this Script
+Author: Seyedsaman Emami
+
+After reading the dataset and defining the batches for training and testing, I implemented the EDA on my problem to know its different aspects better. The methods I used for EDA, are explained in the following.
+
+For the model training part, I used different regression models and trained them with the training batch (Existing products), and after having their performance by testing them with the test split, I predicted the unseen batch (new products attributes)
+
+# EDA 
+* What methods I used in the My EDA:
+* Data pre-processing (Convert categorical features)
+* Missing values review
+* Histogram
+* Scatter plot
+* Regression plot
+* Correlation analysis
+* Binomial test
+
+<hr>
+
+# Model Training
+
+To train the models, I considered the following models and trained them with the training batch;
+* Random Forest Regressor (RF)
+* Gradient Boosting Regressor (GBDT)
+* Support Vector Regression (SVR)
+
+The "caret" package had been selected for this part and for the resampling of the training batch, I considered the "trainControl" method and for each model, I tunned the most significant hyperparameters.
+
+The metrics for evaluating the model performance are as follows;
+* RMSE
+* R^2
+* MAE
+The best model was selected to predict the unseen dataset.
+
+
+# Establishing the R-environment
+
+## Load libraries
+* Load the essential libraries for working on this dataset and following classification problem
+
+```{r}
+library(readr)
+library(tidyverse)
+library(skimr)
+library(caret)
+library(crosstable)
+library(Metrics)
+library(corrplot)
+library(ggpubr)
+library(plotly)
+
+
+set.seed(111)
+options(warn=-1)
+trellis.par.set(caretTheme())
+
+```
+
+# Importing the dataset
+```{r}
+train = "E:/Documents/Other/Ubiqum/Module3/Task3/existingproductattributes2017.csv"
+test = "E:/Documents/Other/Ubiqum/Module3/Task3/newproductattributes2017.csv"
+```
+
+```{r}
+df_train <-read.csv(train)
+df_test <-read.csv(test)
+```
+
+Lets check the features of the training batch and apply EDA method before going to the modeling part.
+```{r}
+summary(df_train)
+```
+```{r}
+head(df_train)
+```
+
+
+# Pre-Process the Data
+Convert all factor or 'chr' classes to binary features that contain ‘0’ and ‘1’ labels.
+```{r}
+newDataFrame <- dummyVars("~ ." , data = df_train)
+readyData <- data.frame(predict(newDataFrame, newdata = df_train))
+```
+```{r}
+newTestFrame <- dummyVars("~ .", data = df_test)
+testData <- data.frame(predict(newTestFrame, newdata = df_test))
+```
+
+```{r}
+str(readyData)
+```
+## Check the missing values
+```{r}
+sum(is.na(readyData))
+sum(is.na(testData))
+```
+
+```{r}
+readyData <- readyData[complete.cases(readyData), ]
+sum(is.na(readyData))
+```
+
+# Statistical analysis
+
+## Data distribution
+```{r, fig.width=20, fig.height=7}  
+par(mfrow=c(4, 5))
+for (val in seq_along(readyData))
+    {
+        hist(readyData[, c(val)])
+}
+```
+
+## Correlation
+Check the impact of different features on weekly sales volume.
+
+```{r}
+corrData <- cor(readyData)
+```
+
+### Correlation Plot
+```{r}
+corrplot(corrData)
+```
+
+We can see that the customer's comments and rating, have a higher influence on the weekly sale.
+```{r}
+corrplot(corrData, order = 'hclust', addrect = 4)
+```
+Detailed correlation plot between sales and customers' reviews
+```{r}
+corrDataReview <- cor(readyData[, c(15:19, 29)])
+corrplot(corrDataReview,  number.cex = 0.8, method='number')
+```
+
+```{r}
+corrplot.mixed(corrDataReview, order = 'AOE')
+```
+
+```{r}
+plot <- ggscatter(readyData, x = "x4StarReviews", y = "Volume", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Client reviews", ylab = "Sale")
+plot
+
+```
+
+## Binomial Test
+As we found the relationship between customer satisfaction and weekly sale, I am going to apply a non-parametric test to check how much chance do we have to get the highest rank in each star.
+
+The number of successes or x is equal to a customer rate greater than 0.65 as it has a higher correlation with the sale. N is the total amount of review (for each review category of each product) probability of the success has set to is 0.1 H0 is: the rate is above 67 scores for the product
+
+If the p-value will smaller than 0.05, then we can reject the null value.
+
+Note that we are looking for a higher customer rank for each product, as the higher rank leads to a higher sale.
+
+```{r}
+review <- names(readyData)[15:19]
+
+for (val in seq_along(review)){
+    xstar <- readyData[, c(review)[val]]
+    condition <- sum(xstar >= 65)
+    print(binom.test(x=condition, n=NROW(xstar), p=0.1))
+}
+
+```
+
+
+
+# Develop Multiple Regression Models
+Building regression models and selecting the one with the best performance for the unseen dataset
+
+## Partitioning the data
+```{r}
+for (i in seq_along(readyData)){
+    readyData[, c(i)] <- as.numeric(readyData[, c(i)])
+}
+
+trainIn <- createDataPartition(y = readyData$Volume, p= .75, list = FALSE)
+trainIn = array(as.numeric(unlist(trainIn)))
+
+train <- readyData[trainIn, ]
+test <- readyData[-trainIn, ]
+
+```
+
+## Random Forest Regressor
+
+### Resampling method
+
+```{r}
+trControl <- trainControl(method = "cv",
+                          number = 2,
+                          p = 0.75,
+                          search = "grid",
+                          allowParallel = TRUE,
+                          verboseIter = TRUE )
+```
+### Tunning hyper parameters
+```{r}
+mtry <- sqrt(ncol(train[, 0:28]))
+tunegrid <- expand.grid(mtry = mtry,
+                        splitrule=c("variance", "extratrees", "maxstat"),
+                        min.node.size=5)
+
+```
+
+### Random Forest
+Random Forest built utilizing ranger.
+
+```{r}
+rfmodel <- train(Volume ~ ., 
+                 data = train,
+                 method = 'ranger',
+                 tuneLength = 10, 
+                 trControl = trControl,
+                 num.trees = 100,
+                 importance = "permutation",
+                 tuneGrid=tunegrid,
+                 preProc = "zv")
+```
+### RMSE for different values of splitrule
+```{r}
+plot(rfmodel)
+```
+### Model Evaluation
+```{r}
+Predrf <- predict(rfmodel , test)
+rmserf<- RMSE(Predrf,test$Volume)
+head(rmserf)
+```
+### Check the predicted values
+```{r}
+print(Predrf)
+```
+### Regression metrics
+```{r}
+pstrf <- postResample(Predrf,test$Volume)
+pstrf
+```
+### densityplot
+```{r}
+densityplot(rfmodel,
+            adjust = 1.25)
+```
+
+
+
+```{r}
+summary(rfmodel)
+```
+
+```{r}
+print(rfmodel)
+```
+
+## Gradient Boosting
+
+```{r}
+tuneGridGB <- expand.grid(n.trees=c(10, 30),
+                           interaction.depth = c(2,4),
+                           shrinkage = c(0.05),
+                           n.minobsinnode = c(0,2))
+
+gb_model <- train(Volume ~.,
+                   data= train,
+                   method = "gbm",
+                   metric = "RMSE",
+                   trControl = trControl,
+                   tuneGrid = tuneGridGB,
+                   verbose=TRUE,
+                   preProc = "zv")
+```
+### Model Evaluation
+
+### Regression metrics
+```{r}
+Predgb <- predict(gb_model , test)
+pstgb <- postResample(Predgb,test$Volume)
+pstgb
+```
+### Check the predicted values
+```{r}
+print(Predgb)
+```
+
+```{r}
+plot(gb_model)
+```
+```{r}
+densityplot(gb_model,
+            adjust = 1.25)
+```
+
+## Support Vector Regression
+```{r}
+tuneSVR <- expand.grid(C = c(0.25, .5, 1),sigma = 0.1)
+
+
+modelSVR <- train(Volume ~ .,
+                  data = train,
+                  method = 'svmRadial',
+                  preProc = "zv",
+                  tuneGrid = tuneSVR
+                  )
+print(modelSVR)
+```
+### Model Evaluation
+```{r}
+plot(modelSVR)
+```
+
+```{r}
+Predsvr <- predict(modelSVR , test)
+pstsvr <- postResample(Predsvr,test$Volume)
+pstsvr
+```
+### Check the predicted values
+```{r}
+print(Predsvr)
+```
+## Model comparison
+```{r}
+pst <- matrix(c(pstgb, pstrf, pstsvr), ncol = 3, byrow = TRUE)
+colnames(pst) <-c("RMSE", "Rsquared", "MAE")
+rownames(pst) <-c("GBM", "Random Forest", "SVR")
+pst
+```
+Based on the models' performances, I select the Gradient Boosting Regression to predict the unseen dataset.
+
+The setting and model configuration is set based on the best hyper parameters.
+
+# Predict the new products' sales
+
+```{r}
+Predgb_unseen <- predict(gb_model , testData)
+pstgb_unseen <- postResample(Predgb_unseen,testData$Volume)
+pstgb
+```
+
+```{r}
+print(Predgb_unseen)
+output <- Predgb_unseen
+```
+# Create a csv file 
+write.csv(output, file="C2.T3output.csv", row.names = TRUE)
+
+```{r}
+write.csv(output, file="C2.T3output.csv", row.names = TRUE)
+```
+
