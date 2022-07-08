@@ -10,7 +10,7 @@ Please feel free to use the codes or dataset as you want.
 * Seyedsaman Emami
 
 ### Last Update:
-* Oct 2021
+08 Jul 2022
 
 <hr>
 
@@ -48,7 +48,9 @@ The problems I worked on them are as following;
     <ul>
         <li> Binary, Multi-class classificatio </li>
         <li> Regression, multi-output regression </li>
-        <li>  Image processing </li>
+        <li> Image processing </li>
+        <li> Quantization </li>
+        <li> Clustering </li>
     </ul>
 The models I use and using are:
     <ul>
@@ -70,6 +72,7 @@ The codes take the advantages of too many well-known libraries. Some of them are
         <li> sklearn</li>
         <li> pytorch </li>
         <li> Tensorflow </li>
+        <li> Product Quantization </li>
     </ul>
 
 # Languages 
@@ -89,6 +92,3 @@ You may find my works in this repository in the following formats;
         <li> R.script</li>
         <li> py </li>
     </ul>
-
-
-
